@@ -1,0 +1,71 @@
+from __future__ import annotations
+
+import time
+from dataclasses import dataclass
+from typing import Iterable
+
+import requests
+
+from app.config import settings
+
+
+@dataclass
+class AuthState:
+    access_token: str = ""
+    api_server: str = ""
+    expires_at: float = 0.0
+
+
+class QuestradeClient:
+    def __init__(self) -> None:
+        self._auth = AuthState()
+        self._session = requests.Session()
+
+    def _token_url(self) -> str:
+        if not settings.refresh_token:
+            raise RuntimeError("QUESTRADE_REFRESH_TOKEN is not set.")
+        return (
+            "https://login.questrade.com/oauth2/token"
+            f"?grant_type=refresh_token&refresh_token={settings.refresh_token}"
+        )
+
+    def _ensure_token(self) -> None:
+        now = time.time()
+        if self._auth.access_token and self._auth.expires_at > now + 30:
+            return
+
+        response = self._session.get(self._token_url(), timeout=settings.request_timeout)
+        response.raise_for_status()
+        payload = response.json()
+        self._auth.access_token = payload["access_token"]
+        self._auth.api_server = payload.get("api_server", settings.base_url)
+        expires_in = payload.get("expires_in", 0)
+        self._auth.expires_at = now + expires_in
+
+    def _headers(self) -> dict[str, str]:
+        self._ensure_token()
+        return {"Authorization": f"Bearer {self._auth.access_token}"}
+
+    def get_accounts(self) -> list[dict[str, object]]:
+        url = f"{self._auth.api_server}v1/accounts"
+        response = self._session.get(url, headers=self._headers(), timeout=settings.request_timeout)
+        response.raise_for_status()
+        return response.json().get("accounts", [])
+
+    def get_quotes(self, symbols: Iterable[str]) -> list[dict[str, object]]:
+        joined = ",".join(symbols)
+        url = f"{self._auth.api_server}v1/markets/quotes?symbols={joined}"
+        response = self._session.get(url, headers=self._headers(), timeout=settings.request_timeout)
+        response.raise_for_status()
+        return response.json().get("quotes", [])
+
+    def place_order(self, account_id: str, order_payload: dict[str, object]) -> dict[str, object]:
+        url = f"{self._auth.api_server}v1/accounts/{account_id}/orders"
+        response = self._session.post(
+            url,
+            headers=self._headers(),
+            json=order_payload,
+            timeout=settings.request_timeout,
+        )
+        response.raise_for_status()
+        return response.json()
