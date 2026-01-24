@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{ app_name }}</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="logo">
+          <span class="logo-mark">⚡</span>
+          <div>
+            <h1>{{ app_name }}</h1>
+            <p class="env">{{ environment }}</p>
+          </div>
+        </div>
+        <nav>
+          <a class="nav-link active" href="#">Dashboard</a>
+          <a class="nav-link" href="#">Config</a>
+          <a class="nav-link" href="#">Market</a>
+          <a class="nav-link" href="#">Strategy</a>
+          <a class="nav-link" href="#">Trades</a>
+          <a class="nav-link" href="#">Logs</a>
+        </nav>
+        <div class="status-card">
+          <h3>Bot Control</h3>
+          <div class="status-row">
+            <span>Status</span>
+            <strong id="bot-status">Loading…</strong>
+          </div>
+          <div class="status-row">
+            <span>Mode</span>
+            <strong id="bot-mode">Paper</strong>
+          </div>
+          <div class="button-group">
+            <button id="start-btn">Start</button>
+            <button id="stop-btn" class="secondary">Stop</button>
+          </div>
+        </div>
+      </aside>
+
+      <main class="content">
+        <header class="topbar">
+          <div>
+            <h2>Overview</h2>
+            <p>Gekko-inspired trading cockpit for Questrade.</p>
+          </div>
+          <div class="topbar-actions">
+            <button class="ghost">Backtest</button>
+            <button class="primary">Deploy</button>
+          </div>
+        </header>
+
+        <section class="grid">
+          <article class="card">
+            <h3>Portfolio Snapshot</h3>
+            <p class="muted">Latest account sync with Questrade.</p>
+            <div class="metric">
+              <span id="accounts-count">0</span>
+              <small>Accounts detected</small>
+            </div>
+            <button class="link" id="refresh-accounts">Refresh Accounts</button>
+          </article>
+
+          <article class="card">
+            <h3>Market Pulse</h3>
+            <p class="muted">Quotes from tracked symbols.</p>
+            <div id="quote-list" class="quote-list"></div>
+            <div class="quote-form">
+              <input type="text" id="symbols-input" placeholder="AAPL, MSFT, SPY" />
+              <button id="load-quotes">Load Quotes</button>
+            </div>
+          </article>
+
+          <article class="card">
+            <h3>Strategy</h3>
+            <p class="muted">Momentum + mean reversion blend.</p>
+            <ul class="list">
+              <li>Signal window: 15m / 1h</li>
+              <li>Risk per trade: 1.5%</li>
+              <li>Stops: ATR-based</li>
+            </ul>
+          </article>
+
+          <article class="card">
+            <h3>Execution</h3>
+            <p class="muted">Next action from strategy engine.</p>
+            <div class="metric">
+              <span id="last-action">No actions yet</span>
+              <small>Last action</small>
+            </div>
+          </article>
+
+          <article class="card wide">
+            <h3>Live Logs</h3>
+            <p class="muted">Recent bot events.</p>
+            <div id="log-list" class="log-list"></div>
+          </article>
+        </section>
+      </main>
+    </div>
+
+    <script src="/static/app.js"></script>
+  </body>
+</html>
